@@ -1,0 +1,289 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/konva@7.1.3/konva.min.js"></script>
+    <meta charset="utf-8" />
+    <title>Konva Zoom Image on Hover Demo</title>
+    <style>
+
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #f0f0f0;
+        }
+
+        * {box-sizing: border-box;}
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            flex: 33.33%;
+            padding: 5px;
+        }
+        
+        .img-zoom-container {
+          position: relative;
+          padding-left: 0px;
+          left: 40rem;
+        }
+
+        .img-zoom-lens {
+          position: absolute;
+          border: 1px solid #d4d4d4;
+          /*set the size of the lens:*/
+          width: 40px;
+          height: 40px;
+        }
+
+        /* TO center the square in result div*/
+        .centered {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          border:1px solid white;
+          width:5px;
+          height:5px;
+          transform: translate(-50%, -50%);
+        }
+        .img-zoom-result {
+          border: 1px solid #a50d0d;
+          /*set the size of the result div:*/
+          width: 100px;
+          height: 100px;
+
+          background-repeat: no-repeat;
+          background-size: cover;
+        }
+      
+    </style>
+  </head>
+  <body>
+  
+    <div class="row">
+        <div id="container" class="column" style="z-index: 1;top:0px"></div>
+        <div id="myresult" class=" img-zoom-result" ><span style="background-color: black;width:100%;color: white;" id="rgb">---RGB---</span></div>
+    </div> 
+
+    <button onclick="imageZoom('myresult'); ">lens</button>
+    <div id="lens" style="z-index: 2;"></div>
+    
+    <script>
+
+      // reference link -- https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_image_zoom
+
+      var width = 612;
+      var height = 612;
+      var result = document.getElementById("myresult");
+      var result_rgb = document.getElementById("rgb");
+      var img = new Konva.Image();
+      
+      var stage = new Konva.Stage({
+        container: 'container',
+        width: width,
+        height: height,
+      });
+
+      var stageLens = new Konva.Stage({
+        container: 'lens',
+        width: 500,
+        height: 500,
+      });
+      
+      var layer = new Konva.Layer();
+      var layerOuter = new Konva.Layer();
+      stage.add(layerOuter);
+     // stage.add(layer); 
+
+      var backgroundImage;
+      var imageObj = new Image();
+      imageObj.onload = function () {
+        backgroundImage = new Konva.Image({
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          image: imageObj
+        });
+        layer.add(backgroundImage);
+        layer.draw(); 
+      };
+      imageObj.src = "https://konvajs.org/assets/space.jpg"
+      //imageObj.src = 'http://braincircuits.org/cgi-bin/iipsrv.fcgi?FIF=/PMD2495/PMD2495%262494-F30-2016.02.27-03.52.25_PMD2495_3_0090.jp2&GAM=1&WID=1024&RGN=0.512,0.4266666666666667,0.042666666666666665,0.042666666666666665&MINMAX=1:10,255&MINMAX=3:10,255&MINMAX=2:10,255&CVT=jpeg';
+      imageObj.crossOrigin = 'Anonymous';// to prevent canvas from getting tinted
+
+      var imageObjC = new Image();
+      imageObjC.onload = function () {
+          var backgroundImageOuter = new Konva.Image({
+              x: 0,
+              y: 0,
+              width: width,
+              height: height,
+              image: imageObjC,
+            
+            });
+          img = backgroundImageOuter;
+          console.log(img);
+          layerOuter.add(backgroundImageOuter);
+          
+          var tr1 = new Konva.Transformer({
+              nodes: [backgroundImageOuter],
+              centeredScaling: true,
+          });
+
+          layer.add(tr1);
+          layerOuter.draw();
+      };
+
+      imageObjC.src = "https://konvajs.org/assets/space.jpg"
+      //imageObjC.src = 'http://braincircuits.org/cgi-bin/iipsrv.fcgi?FIF=/PMD2495/PMD2495%262494-F30-2016.02.27-03.52.25_PMD2495_3_0090.jp2&GAM=1&WID=1024&RGN=0.512,0.4266666666666667,0.042666666666666665,0.042666666666666665&MINMAX=1:10,255&MINMAX=3:10,255&MINMAX=2:10,255&CVT=jpeg';
+      imageObjC.crossOrigin = 'Anonymous';// to prevent canvas from getting tinted
+
+
+      var zoomLevel = 1;
+      layerOuter.on('mouseenter', function () {
+        layer.scale({
+          x: zoomLevel,
+          y: zoomLevel,
+        });
+        
+        layer.draw();
+      });
+
+      layerOuter.on('mousemove', function (e) {
+        var pos = stage.getPointerPosition();
+        
+        layer.x(pos.x+25);
+        layer.y(pos.y-210);
+        layer.position({
+            x:pos.x,
+            y:pos.y
+        });
+
+        //tr1.scale(2,2);
+        layer.draw();
+      });
+
+      layerOuter.on('mouseleave', function () {
+        layer.x(0);
+        layer.y(0);
+        layer.scale({
+          x: 1,
+          y: 1,
+        });
+        //layer.draw();
+      });
+    
+      stage.draw();
+      stageLens.draw();
+      var context = layerOuter.getContext();
+      
+
+      function getRelativePointerPosition(node) {
+            var transform = node.getAbsoluteTransform().copy();
+            // to detect relative position we need to invert transform
+            transform.invert();
+
+            // get pointer (say mouse or touch) position
+            var pos = node.getStage().getPointerPosition();
+
+            // now we can find relative point
+            return transform.point(pos);
+      }
+      //to get rgb of the image from the canvas context of konva layer
+      stage.on('mousemove', function () {
+            var pos = getRelativePointerPosition(layerOuter);
+            //console.log(pos);
+            let rgb = context.getImageData(pos.x*context.canvas.pixelRatio,pos.y*context.canvas.pixelRatio,1,1).data;
+            let r = rgb[0];
+            let g = rgb[1];
+            let b = rgb[2];
+            let text = "background-color: rgb(" + r + "," + g + "," + b + ");";
+            result.style = text;
+            result_rgb.innerHTML =  "rgb(" + r + "," + g + "," + b + ")"
+            //console.log(rgb,r,g,"pixel");
+      });
+
+      function imageZoom() {
+            var  lens, result, cx, cy;
+            /*create lens:*/
+            lens = document.createElement('div'); 
+            lens.setAttribute("id","img-zoom-lens"); 
+            lens.style = "border:0px solid red;width:60px;height:60px;position:absolute;" 
+            lens.style.zIndex = "2";
+
+            /*create result div to show */
+            lens_result = document.createElement('div'); 
+            lens_result.setAttribute("id","img-zoom-assit"); 
+            lens_result.style = "border:1px solid white;width:100px;height:100px;position:absolute;";
+            lens_result.style.zIndex = "3";
+
+            //centered square for better visualization
+            lens_square = document.createElement('div'); 
+            lens_square.setAttribute("class","centered");
+            lens_result.appendChild(lens_square);
+           
+            /*insert lens and result DIV:*/
+            var parent = img.parent;
+            parent.parent.content.insertBefore(lens,parent.canvas._canvas);
+            parent.parent.content.insertBefore(lens_result,parent.canvas._canvas);
+            
+            /*calculate the ratio between result DIV and lens:*/
+            cx = lens_result.offsetWidth / lens.offsetWidth;
+            cy = lens_result.offsetHeight / lens.offsetHeight;
+
+            /*set background properties for the result DIV:*/
+            lens_result.style.backgroundImage = "url('" + img.attrs.image.src + "')";
+            lens_result.style.backgroundSize = (img.attrs.width * cx) + "px " + (img.attrs.height * cy) + "px";
+
+            /*execute a function when someone moves the cursor over the image, or the lens:*/
+            lens.addEventListener("mousemove", moveLens);
+            img.addEventListener("mousemove", moveLens);
+            /*and also for touch screens:*/
+            lens.addEventListener("touchmove", moveLens);
+            img.addEventListener("touchmove", moveLens);
+
+            var count = 0;
+            function moveLens(e) {
+                var pos, x, y;
+                /*prevent any other actions that may occur when moving over the image:*/
+                e.preventDefault();
+                /*get the cursor's x and y positions:*/
+                pos = getCursorPos(e);
+                /*calculate the position of the lens:*/
+                x = pos.x - (lens.offsetWidth / 2);
+                y = pos.y - (lens.offsetHeight / 2);
+                /*prevent the lens from being positioned outside the image:*/
+                if (x > img.attrs.width - lens.offsetWidth) {x = img.attrs.width - lens.offsetWidth;}
+                if (x < 0) {x = 0;}
+                if (y > img.attrs.height - lens.offsetHeight) {y = img.attrs.height - lens.offsetHeight;}
+                if (y < 0) {y = 0;}
+                /*set the position of the lens and result div:*/
+                lens.style.left = x + "px";
+                lens.style.top = y + "px";
+                lens_result.style.left = x+35+"px";
+                lens_result.style.top = y +35 + "px";
+                /*display what the lens "see's":*/
+                lens_result.style.backgroundPosition = "-" + (x * cx) + "px -" + (y * cy) + "px";
+
+            }
+
+            function getCursorPos(e) {
+                var a, x = 0, y = 0;
+                e = e || window.event;
+                /*get the x and y positions of the image:*/
+                a = parent.canvas._canvas.getBoundingClientRect();
+                /*calculate the cursor's x and y coordinates, relative to the image:*/
+                x = e.pageX - a.left;
+                y = e.pageY - a.top;
+                /*consider any page scrolling:*/
+                x = x - window.pageXOffset;
+                y = y - window.pageYOffset;
+                return {x : x, y : y};
+            }
+        }  
+        
+    </script>
+  </body>
+</html>

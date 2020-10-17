@@ -1,0 +1,206 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/konva@7.1.3/konva.min.js"></script>
+    <meta charset="utf-8" />
+    <title>Konva Canvas zoom lens Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+      .row {
+            display: flex;
+      }
+      .column {
+            flex: 33.33%;
+            padding: 5px;
+        }
+      .pos-rgb-result {
+          border: 1px solid #a50d0d;
+          /*set the size of the result div:*/
+          width: 100px;
+          height: 100px;
+          padding-top: 1%;
+          background-repeat: no-repeat;
+          background-size: cover;
+      }
+      #preview {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        border: 1px solid grey;
+        background-color: lightgrey;
+        width: 300px;
+        height: 300px;
+        z-index: 1;
+      } 
+    </style>
+  </head>
+
+  <body>
+    <div class="row">
+      <div class="column" style="z-index: 1;top:0px">
+        <div id="container"></div>
+        <div id="preview"></div>
+      </div>
+      <div id="rgbresult" class="pos-rgb-result" >
+        <span style="z-index: 3; background-color: black;width:100%;color: white;" id="rgb">---RGB---</span>
+      </div>
+  </div> 
+    <script>
+      //initialize variable's
+      var previewDiv = document.getElementById("preview");//to preview zoom lens
+      var rgbResult = document.getElementById("rgbresult");//to display rgb codes 
+      var previewWidth = 150;//(size's can be 100,150,200,300,400,500) set width of lens
+      var previewHeight = 150;//(size's can be 100,150,200,300,400,500) set height of lens
+      var scaleFactor = 8; // set the scale factor for lens zoom(previewStage)
+      var stageWidth = window.innerWidth-100;
+      var stageHeight = window.innerHeight;
+      var rectOffset = [6,3,2,1.5,1.2,1,0.85,0.75,0.67,0.60,0.545,0.50,0.46,0.427,0.40,0.374]; //(200 width and height) scale offsets to center the rect in the lens
+      var scaleIncrement=0.5; 
+      previewDiv.style.width = previewWidth + "px";
+      previewDiv.style.height = previewHeight + "px";
+
+      //init stage 
+      const stage = new Konva.Stage({
+        container: 'container',
+        width: stageWidth,
+        height: stageHeight,
+      });
+
+      const layer = new Konva.Layer({ listening: true });
+      stage.add(layer);//add layer to stage
+      var backgroundImage;
+      var imageObj = new Image();
+      imageObj.id ='orgImage';
+      imageObj.onload = function () {
+        backgroundImage = new Konva.Image({
+            x: 0,
+            y: 0,
+            width: stageWidth,
+            height: stageHeight,
+            image: imageObj,
+            id:'orgImage'
+        });
+        layer.add(backgroundImage);//add image to layer
+        layer.draw();
+      };
+      imageObj.src = 'https://konvajs.org/assets/space.jpg';
+      imageObj.crossOrigin = 'Anonymous';// to prevent canvas from getting tinted when accessing context of image
+      var context = layer.getContext();// get context od image
+
+      // create smaller preview stage to show the zoom lens
+      const previewStage = new Konva.Stage({
+        container: 'preview',
+        width: previewWidth,
+        height: previewHeight,
+        scaleX: scaleFactor, 
+        scaleY: scaleFactor,
+      });
+      const previewLayer = new Konva.Layer({ listening: true });
+      previewStage.add(previewLayer);//add layer to preview stage
+
+      var previewBackgroundImage;
+      var previewImageObj = new Image();
+      previewImageObj.id='outerimg';
+      previewImageObj.onload = function () {
+        previewBackgroundImage = new Konva.Image({
+            x: 0,
+            y: 0,
+            id: 'innerimg',
+            image: previewImageObj,
+        });
+        previewLayer.add(previewBackgroundImage);//add the same image to the preview stage 
+        previewLayer.draw();        
+      };
+      previewImageObj.src = 'https://konvajs.org/assets/space.jpg';
+      
+      //create rectangle in zoom lens to show where the mouse is present in lens
+      var centerRect = new Konva.Rect({
+        x: 11,
+        y: 11,
+        width:2,
+        height: 2,
+        stroke: 'red',
+        fill:null,
+        strokeWidth: 0.2,
+      })
+      var rectLayer = new Konva.Layer({ listening: true });
+      rectLayer.add(centerRect);//add rect to layer
+      previewStage.add(rectLayer);//add the layer to preview stage
+
+      function scrollbounds(v){
+            //limit from 0.5 to 8 for scroll
+            return Math.min(8,Math.max(0.25,v));
+      }
+
+      function updatePreview(pos) {
+
+       let lensOffseta = 1.19; //(500 width and height) lens offset of a and c default is used to control the position of lens with various size of lens
+       let lensOffsetc = 220; 
+       let positionOffsetrect = 0.4;//offset for rect position on various size of lens
+       //set offsets for various size of lens
+       if(previewWidth==400 && previewHeight==400){
+         lensOffseta = 1.5;
+         lensOffsetc = 200;
+         positionOffsetrect = 0.498;
+       }
+       else if(previewHeight==300 && previewWidth==300){ 
+         lensOffseta = 2;
+         lensOffsetc = 150;
+         positionOffsetrect = 0.665;
+       }
+       else if(previewWidth==200 && previewHeight==200){
+         lensOffseta = 3;
+         lensOffsetc = 100;
+         positionOffsetrect = 1;
+       }
+       else if(previewWidth==150 && previewHeight==150){
+         lensOffseta = 4;
+         lensOffsetc = 70;
+         positionOffsetrect = 1.335;
+       }
+       else if(previewWidth==100 && previewHeight==100){
+         lensOffseta = 6;
+         lensOffsetc = 50;
+         positionOffsetrect = 2;
+       }
+       // get the position of stage to be placed with offsets
+       var previewStagepos={
+           x:-pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*lensOffseta+lensOffsetc ,
+           y:-pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*lensOffseta+lensOffsetc
+       };
+
+       let scaleOffset = rectOffset[(scaleFactor/0.5)-1]//get the scaleoffset according to the scale factor
+       let offset = scaleOffset*positionOffsetrect;//final offset to center the rect in lens
+       //set the rect at center of lens
+       centerRect.setX(pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset);
+       centerRect.setY(pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset);
+       rectLayer.draw();
+
+       previewStage.position(previewStagepos);
+       previewStage.batchDraw();
+      }
+
+      stage.on("mousemove", e => {
+        e.evt.preventDefault();
+        var pos = stage.getPointerPosition();
+        var mousePointTo = {
+            x: stage.getPointerPosition().x / stage.scaleX() - stage.x() / stage.scaleX(),
+            y: stage.getPointerPosition().y / stage.scaleY() - stage.y() / stage.scaleY()
+        };
+        // get the rgb color code from context of image for current mouse position, pixelRation is to get relative position in context
+        let rgb = context.getImageData(pos.x*context.canvas.pixelRatio,pos.y*context.canvas.pixelRatio,1,1).data;
+        rgbResult.style = "background-color: rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ");";//set the rgb code as background color in rgb result
+        rgbResult.innerHTML =  "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";// set text in rgb result 
+        //move the preview stage along with the mouse,placed above the mouse
+        previewDiv.style.left = (e.evt.x+25) + "px";
+        previewDiv.style.top = (e.evt.y-(previewWidth+25)) + "px";
+        //newScale =e.evt.deltaY > 0 ? scrollbounds(previewLayer.scaleX()+scaleIncrement) : scrollbounds(previewLayer.scaleX()-scaleIncrement);
+        updatePreview(mousePointTo);
+      });
+    </script>
+  </body>
+</html>
