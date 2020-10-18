@@ -10,22 +10,6 @@
         overflow: hidden;
         background-color: #f0f0f0;
       }
-      .row {
-            display: flex;
-      }
-      .column {
-            flex: 33.33%;
-            padding: 5px;
-        }
-      .pos-rgb-result {
-          border: 1px solid #a50d0d;
-          /*set the size of the result div:*/
-          width: 100px;
-          height: 100px;
-          padding-top: 1%;
-          background-repeat: no-repeat;
-          background-size: cover;
-      }
       #preview {
         position: absolute;
         top: 2px;
@@ -191,8 +175,8 @@
        let scaleOffset = rectOffset[(scaleFactor/0.5)-1]//get the scaleoffset according to the scale factor(scalefactor+1.5)
        let offset = scaleOffset * positionOffsetrect;//final offset to center the rect in lens
        
-       let size;
-       let sizeOffset;
+       let size;//rect size change it as the scale changes
+       let sizeOffset;//as rect size changes the position need to be altered
        if(pointerRectIncreasedir==1){
         size = 10 - scaleFactor;
         sizeOffset = Math.abs(((scaleFactor/0.5) - 16 )*0.22);
@@ -201,15 +185,14 @@
         size = scaleFactor + 1.5;
         sizeOffset = (scaleFactor/0.5)*0.25
        }
+       //set the size of rect as per the scale
        centerRect.width(size);
        centerRect.height(size);
        if(scaleFactor==4.5){
-         
-         sizeOffset = sizeOffset - 0.9;
          sizeOffset = 4;
         }
         if(scaleFactor==3.5){
-          sizeOffset = 5;
+         sizeOffset = 5;
         }
        //set the rect at center of lens
        centerRect.setX((pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset);
