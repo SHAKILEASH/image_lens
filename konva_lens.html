@@ -104,7 +104,8 @@
         previewLayer.draw();        
       };
       previewImageObj.src = 'https://konvajs.org/assets/space.jpg';
-      
+      imageObj.crossOrigin = 'Anonymous';// to prevent canvas from getting tinted when accessing context of image
+      var previewContext = previewLayer.getContext();// get context od image
       //create rectangle in zoom lens to show where the mouse is present in lens
       var centerRect = new Konva.Rect({
         x: 11,
@@ -120,80 +121,80 @@
       previewStage.add(rectLayer);//add the layer to preview stage
 
       function create_rgb(img){
-      rgb_result = document.createElement('div'); 
-      rgb_result.setAttribute("id","img-zoom-assit"); 
-      rgb_result.style = "border:1px solid white;padding-top:3px;background-color:#121212;color:#BB86FC;width:150px;height:30px;position:absolute;text-align: center;";
-      rgb_result.style.width = previewWidth+"px";
-      rgb_result.style.zIndex = "3";
-      rgb_result.innerHTML="--rgb--";
-      console.log(img.parent);
-      var parent = img.parent;
-      parent.parent.content.insertBefore(rgb_result,parent.canvas._canvas);
+        rgb_result = document.createElement('div'); 
+        rgb_result.setAttribute("id","img-zoom-assit"); 
+        rgb_result.style = "border:1px solid white;padding-top:3px;background-color:#121212;color:#BB86FC;width:150px;height:30px;position:absolute;text-align: center;";
+        rgb_result.style.width = previewWidth+"px";
+        rgb_result.style.zIndex = "3";
+        rgb_result.innerHTML="--rgb--";
+        //console.log(img.parent);
+        var parent = img.parent;
+        parent.parent.content.insertBefore(rgb_result,parent.canvas._canvas);
       }
 
       function updatePreview(pos) {
 
-       let lensOffseta = 1.19; //(500 width and height) lens offset of a and c default is used to control the position of lens with various size of lens
-       let lensOffsetc = 220; 
-       let positionOffsetrect = 0.4;//offset for rect position on various size of lens
-       //set offsets for various size of lens
-       if(previewWidth==400 && previewHeight==400){
-         lensOffseta = 1.5;
-         lensOffsetc = 200;
-         positionOffsetrect = 0.498;
-       }
-       else if(previewHeight==300 && previewWidth==300){ 
-         lensOffseta = 2;
-         lensOffsetc = 150;
-         positionOffsetrect = 0.665;
-       }
-       else if(previewWidth==200 && previewHeight==200){
-         lensOffseta = 3;
-         lensOffsetc = 100;
-         positionOffsetrect = 1;
-       }
-       else if(previewWidth==150 && previewHeight==150){
-         lensOffseta = 4;
-         lensOffsetc = 70;
-         positionOffsetrect = 1.335;
-       }
-       else if(previewWidth==100 && previewHeight==100){
-         lensOffseta = 6;
-         lensOffsetc = 50;
-         positionOffsetrect = 2;
-       }
-       //(2,0.4),(2.5,0.7),(3,1),(3.5,1.3),(4,1.6),(4.5,1.9),(5,2.2),()
-       // get the position of stage to be placed with offsets
-       var previewStagepos={
-           x:-pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*lensOffseta+lensOffsetc ,
-           y:-pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*lensOffseta+lensOffsetc
-       };
-       let scaleOffset = rectOffset[(scaleFactor/0.5)-1]//get the scaleoffset according to the scale factor(scalefactor+1.5)
-       let offset = scaleOffset * positionOffsetrect;//final offset to center the rect in lens
-       
-       let size;//rect size change it as the scale changes
-       let sizeOffset;//as rect size changes the position need to be altered
-       if(pointerRectIncreasedir==1){
-        size = 10 - scaleFactor;
-        //sizeOffset = Math.abs(((scaleFactor/0.5) - 16 )*0.22);
-       }
-       else{
-        size = scaleFactor + 1.5;
-        //sizeOffset = (scaleFactor/0.5)*0.25
-       }
-       //set the size of rect as per the scale
-       centerRect.width(size);
-       centerRect.height(size);
-       
-       sizeOffset = sizeOffsetarr[scaleFactor/0.5 -1];//set offset to position the rect at center
-       console.log(sizeOffset);
-       //set the rect at center of lens
-       centerRect.setX((pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset);
-       centerRect.setY((pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset);
-       rectLayer.draw();
+        let lensOffseta = 1.19; //(500 width and height) lens offset of a and c default is used to control the position of lens with various size of lens
+        let lensOffsetc = 220; 
+        let positionOffsetrect = 0.4;//offset for rect position on various size of lens
+        //set offsets for various size of lens
+        if(previewWidth==400 && previewHeight==400){
+          lensOffseta = 1.5;
+          lensOffsetc = 200;
+          positionOffsetrect = 0.498;
+        }
+        else if(previewHeight==300 && previewWidth==300){ 
+          lensOffseta = 2;
+          lensOffsetc = 150;
+          positionOffsetrect = 0.665;
+        }
+        else if(previewWidth==200 && previewHeight==200){
+          lensOffseta = 3;
+          lensOffsetc = 100;
+          positionOffsetrect = 1;
+        }
+        else if(previewWidth==150 && previewHeight==150){
+          lensOffseta = 4;
+          lensOffsetc = 70;
+          positionOffsetrect = 1.335;
+        }
+        else if(previewWidth==100 && previewHeight==100){
+          lensOffseta = 6;
+          lensOffsetc = 50;
+          positionOffsetrect = 2;
+        }
+        //(2,0.4),(2.5,0.7),(3,1),(3.5,1.3),(4,1.6),(4.5,1.9),(5,2.2),()
+        // get the position of stage to be placed with offsets
+        var previewStagepos={
+            x:-pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*lensOffseta+lensOffsetc ,
+            y:-pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*lensOffseta+lensOffsetc
+        };
+        let scaleOffset = rectOffset[(scaleFactor/0.5)-1]//get the scaleoffset according to the scale factor(scalefactor+1.5)
+        let offset = scaleOffset * positionOffsetrect;//final offset to center the rect in lens
+        
+        let size;//rect size change it as the scale changes
+        let sizeOffset;//as rect size changes the position need to be altered
+        if(pointerRectIncreasedir==1){
+          size = 10 - scaleFactor;
+          //sizeOffset = Math.abs(((scaleFactor/0.5) - 16 )*0.22);
+        }
+        else{
+          size = scaleFactor + 1.5;
+          //sizeOffset = (scaleFactor/0.5)*0.25
+        }
+        //set the size of rect as per the scale
+        centerRect.width(size);
+        centerRect.height(size);
+        
+        sizeOffset = sizeOffsetarr[scaleFactor/0.5 -1];//set offset to position the rect at center
+        //console.log(sizeOffset);
+        //set the rect at center of lens
+        centerRect.setX((pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset);
+        centerRect.setY((pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset);
+        rectLayer.draw();
 
-       previewStage.position(previewStagepos);
-       previewStage.batchDraw();
+        previewStage.position(previewStagepos);
+        previewStage.batchDraw();
       }
 
       stage.on("click",function(event){
@@ -224,7 +225,7 @@
       });
 
       stage.on("wheel",function(event){
-        console.log(event);
+        //console.log(event);
         if(event.evt.deltaY<0){
           if(scaleFactor<8 && scaleFactor>0){
             scaleFactor = scaleFactor + scaleIncrement;
