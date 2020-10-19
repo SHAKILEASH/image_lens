@@ -129,11 +129,6 @@
       var parent = img.parent;
       parent.parent.content.insertBefore(rgb_result,parent.canvas._canvas);
       }
-  
-      function scrollbounds(v){
-            //limit from 0.5 to 8 for scroll
-            return Math.min(8,Math.max(0.25,v));
-      }
 
       function updatePreview(pos) {
 
@@ -188,12 +183,44 @@
        //set the size of rect as per the scale
        centerRect.width(size);
        centerRect.height(size);
-       if(scaleFactor==4.5){
-         sizeOffset = 4;
-        }
+       
         if(scaleFactor==3.5){
-         sizeOffset = 5;
+          console.log(sizeOffset);
+         sizeOffset = -0.25;
         }
+        if(scaleFactor==4){
+         console.log(sizeOffset);
+         sizeOffset = 2 ;
+        }
+        if(scaleFactor==4.5){
+         sizeOffset = 3.5;
+        }
+        if(scaleFactor==5){
+          console.log(sizeOffset);
+         sizeOffset = 1.8;
+        }
+        if(scaleFactor==5.5){
+          console.log(sizeOffset);
+         sizeOffset = 1.4;
+        }
+        if(scaleFactor==6){
+          console.log(sizeOffset);
+          sizeOffset = 1.5;
+        }
+        if(scaleFactor==6.5){
+          console.log(sizeOffset);
+          sizeOffset = 0.4;
+        }
+        if(scaleFactor==7){
+          console.log(sizeOffset);
+          sizeOffset = 0.1;
+        }
+        if(scaleFactor==7.5){
+          console.log(sizeOffset);
+          sizeOffset = 1;
+        } 
+        console.log(sizeOffset);
+        sizeOffsetarr = [3.3,3.08,2.86,2.64,2.42,2.2,-0.25,2,3.5,1.8,1.4,1.5,0.4,0.1,1,0]
        //set the rect at center of lens
        centerRect.setX((pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset);
        centerRect.setY((pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset);
@@ -210,7 +237,7 @@
         }
       })
       stage.on("mousemove", e => {
-        var pos = stage.getPointerPosition();
+        var pos = stage.getPointerPosition();//get current mouse position
         var mousePointTo = {
             x: stage.getPointerPosition().x / stage.scaleX() - stage.x() / stage.scaleX(),
             y: stage.getPointerPosition().y / stage.scaleY() - stage.y() / stage.scaleY()
@@ -226,7 +253,7 @@
         //move the preview stage along with the mouse,placed above the mouse
         previewDiv.style.left = (e.evt.x+25) + "px";
         previewDiv.style.top = (e.evt.y-(previewWidth+25)) + "px";
-        //newScale =e.evt.deltaY > 0 ? scrollbounds(previewLayer.scaleX()+scaleIncrement) : scrollbounds(previewLayer.scaleX()-scaleIncrement);
+        //move the stage to the current position
         updatePreview(mousePointTo);
       });
 
@@ -243,9 +270,16 @@
           }
         }
         console.log("curr_Scale",scaleFactor); 
+        //set the scale of lens
         previewStage.scaleX(scaleFactor);
         previewStage.scaleY(scaleFactor);
-        previewStage.draw();
+        var pos = stage.getPointerPosition();
+        var mousePointTo = {
+            x: stage.getPointerPosition().x / stage.scaleX() - stage.x() / stage.scaleX(),
+            y: stage.getPointerPosition().y / stage.scaleY() - stage.y() / stage.scaleY()
+        };
+        //move the stage to the current position
+        updatePreview(mousePointTo);
       });
       
     </script>
