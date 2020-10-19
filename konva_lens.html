@@ -26,7 +26,7 @@
   <body>
     <div >
       <div  style="z-index: 1;top:0px">
-        <div id="container"></div>
+        <div id="container" ></div>
         <div id="preview"></div>
       </div>
       
@@ -87,7 +87,7 @@
         scaleX: scaleFactor, 
         scaleY: scaleFactor,
       });
-      const previewLayer = new Konva.Layer({ listening: true });
+      const previewLayer = new Konva.Layer({ listening: true,clearBeforeDraw:false });
       previewStage.add(previewLayer);//add layer to preview stage
       
       var previewBackgroundImage;
@@ -104,7 +104,7 @@
         previewLayer.draw();        
       };
       previewImageObj.src = 'https://konvajs.org/assets/space.jpg';
-      imageObj.crossOrigin = 'Anonymous';// to prevent canvas from getting tinted when accessing context of image
+      previewImageObj.crossOrigin = 'Anonymous';// to prevent canvas from getting tinted when accessing context of image
       var previewContext = previewLayer.getContext();// get context od image
       //create rectangle in zoom lens to show where the mouse is present in lens
       var centerRect = new Konva.Rect({
@@ -115,10 +115,22 @@
         stroke: 'red',
         fill:null,
         strokeWidth: 0.2,
-      })
+      });
       var rectLayer = new Konva.Layer({ listening: true });
       rectLayer.add(centerRect);//add rect to layer
       previewStage.add(rectLayer);//add the layer to preview stage
+
+      var grid = new Konva.Line({       //lines to form the grid
+        points: [0,0,0,150,20,150,20,0],
+        stroke: 'white',
+        strokeWidth: 0.1,
+        lineCap: 'round',
+        lineJoin: 'round',
+      });
+      var gridLayer = new Konva.Layer();// create a layer to store grid
+      gridLayer.add(grid);
+      previewStage.add(gridLayer);
+      drawGrid(2,0.1);//draw grid initially with 2 spacing and 0.1 width
 
       function create_rgb(img){
         rgb_result = document.createElement('div'); 
@@ -130,6 +142,60 @@
         //console.log(img.parent);
         var parent = img.parent;
         parent.parent.content.insertBefore(rgb_result,parent.canvas._canvas);
+      }
+
+      // function to draw grid
+      function drawGrid(spacing,strokeWidth){
+        let width_ = stageWidth;
+        let height_ = stageHeight;
+        let points = [];
+        var c = 0
+        for(var x=0;x<width_;){ //get points for vertical lines
+            if(c%2==0){
+              points.push(x);
+              points.push(0);
+              points.push(x);
+              points.push(height_);
+              
+            }
+            else{
+              points.push(x);
+              points.push(height_);
+              points.push(x);
+              points.push(0);
+              
+            }
+            x=x+spacing; // set grid spacing
+            c=c+1;
+        }
+        if(c%2!=0){
+          points.push(0);
+          points.push(height_);
+
+        }
+        c = 0;
+        for(var y=0;y<height_;){ // get points for horizontal lines
+          
+          if(c%2==0){
+            points.push(0);
+            points.push(y);
+            points.push(width_);
+            points.push(y);
+            
+          }
+          else{
+            points.push(width_);
+            points.push(y);
+            points.push(0);
+            points.push(y);
+            
+          }
+          y=y+spacing; // set grid spacing
+          c=c+1;
+        } 
+        grid.strokeWidth(strokeWidth);//set width of line
+        grid.setPoints(points); // set points to grid
+        gridLayer.draw();
       }
 
       function updatePreview(pos) {
@@ -163,7 +229,6 @@
           lensOffsetc = 50;
           positionOffsetrect = 2;
         }
-        //(2,0.4),(2.5,0.7),(3,1),(3.5,1.3),(4,1.6),(4.5,1.9),(5,2.2),()
         // get the position of stage to be placed with offsets
         var previewStagepos={
             x:-pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*lensOffseta+lensOffsetc ,
@@ -185,9 +250,7 @@
         //set the size of rect as per the scale
         centerRect.width(size);
         centerRect.height(size);
-        
         sizeOffset = sizeOffsetarr[scaleFactor/0.5 -1];//set offset to position the rect at center
-        //console.log(sizeOffset);
         //set the rect at center of lens
         centerRect.setX((pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset);
         centerRect.setY((pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset);
@@ -201,8 +264,9 @@
        if(count==0){
         create_rgb(img);
         count=count+1;
-        }
-      })
+        }  
+      });
+
       stage.on("mousemove", e => {
         var pos = stage.getPointerPosition();//get current mouse position
         var mousePointTo = {
@@ -211,12 +275,12 @@
         };
         // get the rgb color code from context of image for current mouse position, pixelRation is to get relative position in context
         let rgb = context.getImageData(pos.x*context.canvas.pixelRatio,pos.y*context.canvas.pixelRatio,1,1).data;
-        //rgb_result.style = "background-color: rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ");";
         if(count==1){
         rgb_result.style.left = pos.x + 25 + "px";
         rgb_result.style.top = pos.y - (previewWidth + 65) + "px";
         rgb_result.innerHTML=  "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
         }
+        
         //move the preview stage along with the mouse,placed above the mouse
         previewDiv.style.left = (e.evt.x+25) + "px";
         previewDiv.style.top = (e.evt.y-(previewWidth+25)) + "px";
@@ -225,7 +289,8 @@
       });
 
       stage.on("wheel",function(event){
-        //console.log(event);
+
+        let spacing,strokeWidth;// spacing and width for grid
         if(event.evt.deltaY<0){
           if(scaleFactor<8 && scaleFactor>0){
             scaleFactor = scaleFactor + scaleIncrement;
@@ -234,9 +299,16 @@
         if(event.evt.deltaY>0){
           if(scaleFactor>0.5 && scaleFactor<=8){
             scaleFactor = scaleFactor - scaleIncrement;
+            
           }
         }
         console.log("curr_Scale",scaleFactor); 
+        spacing = 10 - scaleFactor;
+        strokeWidth = 0.1*(8-scaleFactor);
+        if(strokeWidth==0){
+          strokeWidth = 0.1;
+        }
+        drawGrid(spacing,strokeWidth);//set grid spacing and width as the scale changes
         //set the scale of lens
         previewStage.scaleX(scaleFactor);
         previewStage.scaleY(scaleFactor);
