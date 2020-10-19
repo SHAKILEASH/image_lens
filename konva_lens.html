@@ -131,6 +131,8 @@
       gridLayer.add(grid);
       previewStage.add(gridLayer);
       drawGrid(2,0.1);//draw grid initially with 2 spacing and 0.1 width
+      gridLayer.zIndex(1);
+      rectLayer.zIndex(2);
 
       function create_rgb(img){
         rgb_result = document.createElement('div'); 
@@ -252,9 +254,56 @@
         centerRect.height(size);
         sizeOffset = sizeOffsetarr[scaleFactor/0.5 -1];//set offset to position the rect at center
         //set the rect at center of lens
-        centerRect.setX((pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset);
-        centerRect.setY((pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset);
+        let centerPreviewpos = {
+          x:(pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset,
+          y:(pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset
+        };
+        strokeWidth = 0.17*(8-scaleFactor);
+        if(strokeWidth==0){
+          strokeWidth = 0.2;
+        }
+        centerRect.strokeWidth(strokeWidth);
+        centerRect.setX(centerPreviewpos.x);
+        centerRect.setY(centerPreviewpos.y);
         rectLayer.draw();
+        let oo = 0;
+        if(scaleFactor==6.5){
+          oo = 0.5;
+        }  
+        if(scaleFactor==6){
+          oo = 2;
+        }  
+        if(scaleFactor==5.5){
+          oo = 3;
+        }
+        if(scaleFactor==4.5){
+          oo = 4;
+        }
+        if(scaleFactor==3.5){
+          oo = -0.5;
+        }  
+        if(scaleFactor==3){
+          oo = 4;
+        }  
+        if(scaleFactor==2){
+          oo = 2;
+        }  
+        if(scaleFactor==1.5){
+          oo = 3;
+        }  
+        if(scaleFactor==1){
+          oo = 3;
+        }
+        if(scaleFactor==0.5){
+          oo = 2;
+          
+        }  
+          
+          
+        centerPreviewpos.x = centerPreviewpos.x - previewWidth - oo;
+        centerPreviewpos.y = centerPreviewpos.y - previewHeight - oo;
+        gridLayer.position(centerPreviewpos);
+        gridLayer.draw();
 
         previewStage.position(previewStagepos);
         previewStage.batchDraw();
