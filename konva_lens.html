@@ -46,6 +46,7 @@
       var scaleIncrement=0.5; 
       var count = 0;
       var backgroundImage;
+      var brushSize = 5;//set the brush size 
       var imageObj = new Image();
       var previewBackgroundImage;
       var previewImageObj = new Image();
@@ -113,10 +114,10 @@
       
       //create rectangle in zoom lens to show where the mouse is present in lens
       var centerRect = new Konva.Rect({
-        x: 11,
-        y: 11,
-        width:2,
-        height: 2,
+        x: 10,
+        y: 10,
+        width:brushSize,
+        height: brushSize,
         stroke: 'red',
         fill:null,
         strokeWidth: 0.2,
@@ -135,7 +136,7 @@
       var gridLayer = new Konva.Layer();// create a layer to store grid
       gridLayer.add(grid);
       previewStage.add(gridLayer);
-      drawGrid(2,0.1);//draw grid initially with 2 spacing and 0.1 width
+      drawGrid(brushSize,0.1);//draw grid initially with 2 spacing and 0.1 width
       gridLayer.zIndex(1);
       rectLayer.zIndex(2);
 
@@ -154,9 +155,10 @@
 
       // function to draw grid
       function drawGrid(spacing,strokeWidth){
-            let width_ = stageWidth;
+            let width_ = stageWidth ;
             let height_ = stageHeight;
             let points = [];
+            //spacing = 5
             var c = 0
             for(var x=0;x<width_;){ //get points for vertical lines
                 if(c%2==0){
@@ -220,15 +222,16 @@
               //sizeOffset = (scaleFactor/0.5)*0.25
             }
             //set the size of rect as per the scale
-            centerRect.width(size);
-            centerRect.height(size);
+            centerRect.width(brushSize);
+            centerRect.height(brushSize);
+            
             sizeOffset = sizeOffsetarr[scaleFactor/0.5 -1];//set offset to position the rect at center
             //set the rect at center of lens
             let centerPreviewpos = {
               x:(pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset,
               y:(pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset
             };
-            let strokeWidth = 0.17*(8-scaleFactor);
+            let strokeWidth = 0.17*(8-scaleFactor); // set the width of the border
             if(strokeWidth==0){
               strokeWidth = 0.2;
             }
@@ -242,10 +245,20 @@
 
       // function to move the grid as to align with rect at center 
       function updateGrid(centerPreviewpos){
-            let offset = gridOffsetarr[(scaleFactor/0.5)-1]
-
-            centerPreviewpos.x = centerPreviewpos.x - previewWidth - offset;
-            centerPreviewpos.y = centerPreviewpos.y - previewHeight - offset;
+            let offsetwid,offsethei;
+            offsetwid = (previewWidth/brushSize);
+            offsethei = (previewHeight/brushSize);
+            let remainder = offsetwid%5;
+            if (remainder!=0){
+              offsetwid = 5 - remainder + offsetwid;
+            }
+            remainder = offsethei%5;
+            if (remainder!=0){
+              offsethei = 5 - remainder + offsethei;
+            }
+            console.log(offsetwid,offsethei)
+            centerPreviewpos.x = centerPreviewpos.x -brushSize*offsetwid ;//1-150,2-70,3-50,4-40,5-30,6-25
+            centerPreviewpos.y = centerPreviewpos.y -brushSize*offsethei;//- previewHeight - offset
             gridLayer.position(centerPreviewpos);
             gridLayer.draw();
       }
@@ -347,7 +360,7 @@
             if(strokeWidth==0){
               strokeWidth = 0.1;
             }
-            drawGrid(spacing,strokeWidth);//set grid spacing and width as the scale changes
+            drawGrid(brushSize,strokeWidth);//set grid spacing and width as the scale changes
             //set the scale of lens
             previewStage.scaleX(scaleFactor);
             previewStage.scaleY(scaleFactor);
