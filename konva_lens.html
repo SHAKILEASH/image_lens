@@ -211,16 +211,7 @@
             let scaleOffset = rectOffset[(scaleFactor/0.5)-1]//get the scaleoffset according to the scale factor(scalefactor+1.5)
             let offset = scaleOffset * positionOffsetrect;//final offset to center the rect in lens
             
-            let size;//rect size change it as the scale changes
             let sizeOffset;//as rect size changes the position need to be altered
-            if(pointerRectIncreasedir==1){
-              size = 10 - scaleFactor;
-              //sizeOffset = Math.abs(((scaleFactor/0.5) - 16 )*0.22);
-            }
-            else{
-              size = scaleFactor + 1.5;
-              //sizeOffset = (scaleFactor/0.5)*0.25
-            }
             //set the size of rect as per the scale
             centerRect.width(brushSize);
             centerRect.height(brushSize);
@@ -245,7 +236,7 @@
 
       // function to move the grid as to align with rect at center 
       function updateGrid(centerPreviewpos){
-            let offsetwid,offsethei;
+            let offsetwid,offsethei;// offset required to place the grid center
             offsetwid = (previewWidth/brushSize);
             offsethei = (previewHeight/brushSize);
             let remainder = offsetwid%5;
@@ -256,9 +247,8 @@
             if (remainder!=0){
               offsethei = 5 - remainder + offsethei;
             }
-            console.log(offsetwid,offsethei)
-            centerPreviewpos.x = centerPreviewpos.x -brushSize*offsetwid ;//1-150,2-70,3-50,4-40,5-30,6-25
-            centerPreviewpos.y = centerPreviewpos.y -brushSize*offsethei;//- previewHeight - offset
+            centerPreviewpos.x = centerPreviewpos.x -brushSize*offsetwid ;
+            centerPreviewpos.y = centerPreviewpos.y -brushSize*offsethei;
             gridLayer.position(centerPreviewpos);
             gridLayer.draw();
       }
@@ -355,7 +345,6 @@
               }
             }
             console.log("curr_Scale",scaleFactor); 
-            spacing = 10 - scaleFactor;
             strokeWidth = 0.1*(8-scaleFactor);
             if(strokeWidth==0){
               strokeWidth = 0.1;
