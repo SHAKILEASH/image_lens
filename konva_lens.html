@@ -40,13 +40,14 @@
       var pointerRectIncreasedir = 1;
       var stageWidth = window.innerWidth;
       var stageHeight = window.innerHeight;
-      var rectOffset = [6,3,2,1.5,1.2,1,0.85,0.75,0.67,0.60,0.545,0.50,0.46,0.427,0.40,0.374]; //(200 width and height) scale offsets to center the rect in the lens
+      var rectOffset = [6,3,2,1.5,1.2,1,0.853,0.751,0.67,0.60,0.545,0.50,0.46,0.427,0.3995,0.374]; //(200 width and height) scale offsets to center the rect in the lens
       var sizeOffsetarr = [3.3,3.08,2.86,2.64,2.42,2.2,-0.25,2,3.5,1.8,1.4,1.5,0.4,0.1,1,0]; //offset array to center the rect
-      var gridOffsetarr = [2,3,3,2,0,4,-0.5,0,4,0,3,2,0.5,0,0,0]; //offset to move the grid along with the stage to keep the rect aligned with grid
+      //var gridOffsetarr = [2,3,3,2,0,4,-0.5,0,4,0,3,2,0.5,0,0,0]; //offset to move the grid along with the stage to keep the rect aligned with grid
       var scaleIncrement=0.5; 
       var count = 0;
       var backgroundImage;
-      var brushSize = 5;//set the brush size 
+      var brushSize = 6;//set the brush size 1-0.2 2-0.23 3-0.45 4-0.45 5-0.65 6-0.65
+      var center_offset = 0.2;// set to modify the postion of stage to center as with brush size
       var imageObj = new Image();
       var previewBackgroundImage;
       var previewImageObj = new Image();
@@ -218,9 +219,10 @@
             
             sizeOffset = sizeOffsetarr[scaleFactor/0.5 -1];//set offset to position the rect at center
             //set the rect at center of lens
+            let centerOffset = brushSize/2// (brushSize/2);
             let centerPreviewpos = {
-              x:(pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset) - sizeOffset,
-              y:(pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset) - sizeOffset
+              x:(pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*offset ) - sizeOffset - centerOffset,
+              y:(pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*offset ) - sizeOffset - centerOffset
             };
             let strokeWidth = 0.17*(8-scaleFactor); // set the width of the border
             if(strokeWidth==0){
@@ -241,14 +243,14 @@
             offsethei = (previewHeight/brushSize);
             let remainder = offsetwid%5;
             if (remainder!=0){
-              offsetwid = 5 - remainder + offsetwid;
+              offsetwid = 5 - remainder + offsetwid + 5;
             }
             remainder = offsethei%5;
             if (remainder!=0){
-              offsethei = 5 - remainder + offsethei;
+              offsethei = 5 - remainder + offsethei +5;
             }
-            centerPreviewpos.x = centerPreviewpos.x -brushSize*offsetwid ;
-            centerPreviewpos.y = centerPreviewpos.y -brushSize*offsethei;
+            centerPreviewpos.x = centerPreviewpos.x -brushSize*(offsetwid) ;
+            centerPreviewpos.y = centerPreviewpos.y -brushSize*(offsethei) ;
             gridLayer.position(centerPreviewpos);
             gridLayer.draw();
       }
@@ -286,12 +288,22 @@
               positionOffsetrect = 2;
             }
             // get the position of stage to be placed with offsets
+            if(brushSize%2==0){
+              center_offset = (brushSize/2)*0.25;
+            }
+            else{
+              
+              center_offset = ((brushSize-1)/2)*0.25 + 0.05;
+            }
+            let offset = brushSize*1/(brushSize-(brushSize-center_offset)); // keep the stage centered as per brush size
             var previewStagepos={
-                x:-pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*lensOffseta+lensOffsetc ,
-                y:-pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*lensOffseta+lensOffsetc
+                x:(-pos.x*previewStage.width()/stage.width()*previewStage.scaleX()*lensOffseta+lensOffsetc ) + offset,
+                y:(-pos.y*previewStage.height()/stage.height()*previewStage.scaleY()*lensOffseta+lensOffsetc ) + offset
             };
+            
             let centerPreviewpos = updateRect(positionOffsetrect,pos); //center the rect in lens
             updateGrid(centerPreviewpos); //align the grid with rect
+            
             previewStage.position(previewStagepos); // set poition of previewstage
             previewStage.batchDraw();
       }
